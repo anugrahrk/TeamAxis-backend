@@ -7,7 +7,7 @@ const bcrypt=require("bcrypt")
 const zod=require("zod")
 const jwt=require("jsonwebtoken")
 const JWT_SECRET="MY_SECERT"
-const mware=require("../Mware")
+const Mware = require("../Mware")
 
 const UserSchema=zod.object({
     username:zod.email(),
@@ -15,7 +15,7 @@ const UserSchema=zod.object({
     department:zod.string()
 })
 
-router.post("/register",async(req,res)=>{
+router.post("/register",Mware("admin"), async(req,res)=>{
     const {success}=UserSchema.safeParse(req.body)
     if (!success){
         return res.status(411).json({
@@ -86,6 +86,7 @@ router.post("/signin",async(req,res)=>{
             const token=jwt.sign({username,role:"user"},JWT_SECRET)
             return res.json({
                 msg:"User login Success",
+                userId:ValidUser._id,
                 token
             })
         }
