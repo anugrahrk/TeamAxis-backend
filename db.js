@@ -31,14 +31,26 @@ const taskSchema=mongoose.Schema({
     },
     progess:{
         type:Number,
+        required:true,
+        default:0
+    },
+    depId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Department",
+        required:true
+    }
+
+})
+const DepartmentSchema=mongoose.Schema({
+    name:{
+        type:String,
         required:true
     },
     userId:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"user",
+        ref:"User",
         required:true
     }
-
 })
 const AttachmentSchema=mongoose.Schema({
     name:{
@@ -46,16 +58,18 @@ const AttachmentSchema=mongoose.Schema({
     },
     taskId:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"task",
+        ref:"Task",
         required:true
     }
 })
 const User=mongoose.model("User",userSchema)
 const Task=mongoose.model("Task",taskSchema)
 const Attachment=mongoose.model("Attachment",AttachmentSchema)
+const Department=mongoose.model("Department",DepartmentSchema)
 
 module.exports={
     User,
     Task,
-    Attachment
+    Attachment,
+    Department
 }
