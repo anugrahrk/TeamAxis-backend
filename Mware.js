@@ -1,6 +1,8 @@
 const jwt=require("jsonwebtoken")
 const JWT_SECRET="MY_SECERT"
-const Mware=({ role:"admin"||"user"||"" },(req,res,next)=>{
+
+const Mware=( Arole=null )=>{
+    return(req,res,next)=>{
     const token=req.headers.authorization
     if(!auth || !auth.startsWith("Bearer ")){
         res.json({
@@ -38,5 +40,5 @@ const Mware=({ role:"admin"||"user"||"" },(req,res,next)=>{
             msg:"Catch mware"
         })
     }
-})
+}}
 module.exports=Mware
