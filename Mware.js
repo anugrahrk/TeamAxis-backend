@@ -4,40 +4,26 @@ const JWT_SECRET="MY_SECERT"
 const Mware=( Arole=null )=>{
     return(req,res,next)=>{
     const token=req.headers.authorization
-    if(!auth || !auth.startsWith("Bearer ")){
+    if(!token || !token.startsWith("Bearer ")){
         res.json({
             msg:"Invalid Token"
         })
     }
+    const auth=token.split(" ")[1]
     try{
-
-        if (Arole=="admin" || Arole=="user"){
-            const decoded=jwt.verify({role:Arole,token},JWT_SECRET)
-            if (decoded){
-                next()
-            }
-            else{
-                res.json({
-                    msg:"Invalid user"
-                })
-            }
-        }
-        else if(Arole==""){
-            const decoded=jwt.verify(token,JWT_SECRET)
-            if (decoded){
-                next()
-            }
-            else{
-                res.json({
-                    msg:"Invalid user"
-                })
-            }
-        }
-
+    const decoded=jwt.verify(auth,JWT_SECRET)
+    req.user=decoded
+    if(Arole && decoded.role !== Arole){
+        return res.json({
+            msg:"forbidden"
+        })
+    }
+    next()     
     }
     catch(e){
         res.json({
-            msg:"Catch mware"
+            msg:"Catch mware",
+            err:e
         })
     }
 }}

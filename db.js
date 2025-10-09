@@ -11,8 +11,8 @@ const userSchema=mongoose.Schema({
         required:true,
         minLength:6
     },
-    department:{
-        type:String,
+    departmentId:{
+        type:mongoose.Types.ObjectId,
         required:true,
     }
 })
@@ -21,23 +21,34 @@ const taskSchema=mongoose.Schema({
         type:String,
         required:true
     },
-    taskId:{
-        type:Number,
-        required:true
-    },
-    decscription:{
+    description:{
         type:String,
         required:true
     },
     progess:{
         type:Number,
-        required:true,
         default:0
+    },
+    startDate:{
+        type:String,
+        required:true
+    },
+    endDate:{
+        type:String,
+        required:true
     },
     depId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Department",
         required:true
+    },
+    completed:{
+        type:Boolean,
+        default:false
+    },
+    Attachment:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Attachment"
     }
 
 })

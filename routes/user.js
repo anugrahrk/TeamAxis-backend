@@ -1,5 +1,5 @@
 const express=require("express")
-const { User }=require("../db")
+const { User,Department }=require("../db")
 // const {Task}=require("./db")
 // const {Attachment}=require("./db")
 const router=express.Router()
@@ -36,14 +36,18 @@ router.post("/register",Mware("admin"), async(req,res)=>{
             })
         }
         else{
+            const dep=await Department.findOne({
+                name:department
+            })
             const UserRes=await User.create({
                 username:username,
                 password:newPassword,
-                department:department
+                departmentId:dep._id
             })
-            return res.status(411).json({
+            return res.status(200).json({
                 "msg":"User created successfully"
             })
+
 
         }
     }
@@ -82,14 +86,22 @@ router.post("/signin",async(req,res)=>{
             const ValidUser=await User.findOne({
             username
         })
+
         if(ValidUser){
+            const MatchPassword=bcrypt.compare(password,ValidUser.password)
+            if (MatchPassword){
             const token=jwt.sign({username,role:"user"},JWT_SECRET)
             return res.json({
                 msg:"User login Success",
                 userId:ValidUser._id,
                 token
             })
-        }
+            }
+        else{
+            return res.json({
+                msg:"Username and Password Doesnt match."
+            })
+        }}
 }
 catch(e){
     return res.json({
