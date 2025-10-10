@@ -1,10 +1,14 @@
 const mongoose=require("mongoose")
+const { string } = require("zod")
 const mongooseURI="mongodb+srv://anugrahrk6_db_user:84xtlrWwYgbNkuDr@cluster007.p6z4rkj.mongodb.net/PMS"
 mongoose.connect(mongooseURI)
 const userSchema=mongoose.Schema({
     username:{
         type:String,
         required:true
+    },
+    fullName:{
+        type:String
     },
     password:{
         type:String,
@@ -14,6 +18,10 @@ const userSchema=mongoose.Schema({
     departmentId:{
         type:mongoose.Types.ObjectId,
         required:true,
+    },
+    status:{
+        type:String,
+        default:"Inactive"
     }
 })
 const taskSchema=mongoose.Schema({

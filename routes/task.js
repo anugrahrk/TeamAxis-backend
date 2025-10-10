@@ -1,5 +1,5 @@
 const express =require("express")
-const { Task, Department }=require("../db")
+const { Task, Department, User }=require("../db")
 const router=express.Router()
 const Mware=require("../Mware")
 const zod=require("zod")
@@ -86,7 +86,57 @@ router.put("/update/:id",Mware("user"),async(req,res)=>{
             msg:"catch error"
         })
     }
-
+})
+router.get("/view/:id",Mware(),async(req,res)=>{
+    const role=req.user.role
+    if (role=="admin"){
+        const TaskAll=await Task.find()
+        return res.json({
+            msg:"Success",
+            task:TaskAll
+        })
+    }
+    else if(role=="user"){
+        const user=await User.findOne({
+            _id:req.params.id
+}
+        )
+        if (user){
+            const TaskList=await Task.find({
+                depId:user.departmentId
+            })
+                return res.json({
+                    TaskList
+                })
+        }
+        else{
+            return res.json({
+                msg:"User Not Found"
+            })
+        }
+    }
+    else{
+        return res.json({
+            msg:"To access you must be either be an User or an Admin."
+        })
+    }
+})
+router.delete("/delete/:id",Mware("admin"),async(req,res)=>{
+    const id=req.params.id
+    try{
+        await Task.delete({
+        _id:id
+    })
+    return res.json({
+        msg:"Task Deleted"
+    })
+       }
+    catch(e){
+        return res.json({
+            msg:"Unable to delete Task",
+            err:e
+        })
+    }
 
 })
 

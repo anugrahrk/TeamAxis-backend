@@ -12,7 +12,8 @@ const Mware = require("../Mware")
 const UserSchema=zod.object({
     username:zod.email(),
     password:zod.string().min(6),
-    department:zod.string()
+    department:zod.string(),
+    fullName:zod.string()
 })
 
 router.post("/register",Mware("admin"), async(req,res)=>{
@@ -42,7 +43,8 @@ router.post("/register",Mware("admin"), async(req,res)=>{
             const UserRes=await User.create({
                 username:username,
                 password:newPassword,
-                departmentId:dep._id
+                departmentId:dep._id,
+                fullName:req.body.fullName
             })
             return res.status(200).json({
                 "msg":"User created successfully"
@@ -108,6 +110,53 @@ catch(e){
         msg:"catch"
     })
 }
+    }
+})
+
+const UserUpdateSchema=zod.object({
+    password:zod.string().min(6).optional(),
+    status:zod.string().optional(),
+    fullName:zod.string().optional()
+
+})
+router.put("/update/:id",Mware("admin"),async(req,res)=>{
+        const { success }=UserUpdateSchema.safeParse(req.body)
+        if(!success){
+            return res.json({
+                msg:"Inavlid Format"
+            })
+        }
+        const id=req.params.id
+        const HashPassword=await bcrypt.hash(req.body.password,10)
+        try{
+            await User.findByIdAndUpdate(id,{
+                password:HashPassword,
+                status:req.body.status,
+                fullName:req.body.fullName
+
+            })
+            return res.json({
+                msg:"User Updated Successfully"
+            })
+        }
+        catch(e){
+            return res.json({
+            msg:"Unable to Update User",
+            err:e
+            })
+        }
+})
+router.get("/view",Mware("admin"),async(req,res)=>{
+    try{
+        const Users=await User.find()
+        return res.json({
+            Users
+        })
+    }
+    catch(e){
+        return res.json({
+            msg:"You must be an admin to view User"
+        })
     }
 })
 
