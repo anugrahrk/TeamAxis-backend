@@ -13,6 +13,7 @@ const Mware=( Arole=null )=>{
     try{
     const decoded=jwt.verify(auth,JWT_SECRET)
     req.user=decoded
+    // console.log(decoded)
     if(Arole && decoded.role !== Arole){
         return res.json({
             msg:"forbidden"

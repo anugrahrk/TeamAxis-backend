@@ -1,5 +1,5 @@
 const express=require("express")
-const { User,Department }=require("../db")
+const { User, Department, }=require("../db")
 // const {Task}=require("./db")
 // const {Attachment}=require("./db")
 const router=express.Router()
@@ -11,7 +11,7 @@ const Mware = require("../Mware")
 
 const UserSchema=zod.object({
     username:zod.email(),
-    password:zod.string().min(6),
+    password:zod.string(),
     department:zod.string(),
     fullName:zod.string()
 })
@@ -47,7 +47,7 @@ router.post("/register",Mware("admin"), async(req,res)=>{
                 fullName:req.body.fullName
             })
             return res.status(200).json({
-                "msg":"User created successfully"
+                msg:"User created successfully"
             })
 
 
@@ -56,7 +56,7 @@ router.post("/register",Mware("admin"), async(req,res)=>{
     catch(e){
         console.log(e)
         return res.status(411).json({
-            "msg":"Something went wrong"
+            err:"Something went wrong"
         })
     }
 
@@ -79,8 +79,8 @@ router.post("/signin",async(req,res)=>{
     if (username=="admin" && password=="admin"){
         const token=jwt.sign({username,role:"admin"},JWT_SECRET)
         return res.json({
-            "msg":"Admin authenticated Successfully",
-            "token":token
+            admin:"Admin authenticated Successfully",
+            token:"Bearer "+token
         })
     }
     else{
@@ -94,9 +94,9 @@ router.post("/signin",async(req,res)=>{
             if (MatchPassword){
             const token=jwt.sign({username,role:"user"},JWT_SECRET)
             return res.json({
-                msg:"User login Success",
+                user:"User login Success",
                 userId:ValidUser._id,
-                token
+                token:"Bearer "+token
             })
             }
         else{
@@ -114,7 +114,7 @@ catch(e){
 })
 
 const UserUpdateSchema=zod.object({
-    password:zod.string().min(6).optional(),
+    password:zod.string().optional(),
     status:zod.string().optional(),
     fullName:zod.string().optional()
 
@@ -123,11 +123,14 @@ router.put("/update/:id",Mware("admin"),async(req,res)=>{
         const { success }=UserUpdateSchema.safeParse(req.body)
         if(!success){
             return res.json({
-                msg:"Inavlid Format"
+                err:"Inavlid Format"
             })
         }
         const id=req.params.id
-        const HashPassword=await bcrypt.hash(req.body.password,10)
+        if (req.body.password)
+            {
+                var HashPassword=await bcrypt.hash(req.body.password,10)
+            }
         try{
             await User.findByIdAndUpdate(id,{
                 password:HashPassword,
@@ -141,21 +144,33 @@ router.put("/update/:id",Mware("admin"),async(req,res)=>{
         }
         catch(e){
             return res.json({
-            msg:"Unable to Update User",
-            err:e
+            err:"Unable to Update User"
             })
         }
 })
 router.get("/view",Mware("admin"),async(req,res)=>{
     try{
         const Users=await User.find()
+        const UserwtDept=await Promise.all(
+            Users.map(async(user)=>{
+                const dept=await Department.findById(user.departmentId)
+                return {
+                    _id:user._id,
+                    fullName:user.fullName,
+                    username:user.username,
+                    department:dept.name,
+                    status:user.status
+                }
+            })
+        )
         return res.json({
-            Users
+           UserwtDept
         })
     }
     catch(e){
         return res.json({
-            msg:"You must be an admin to view User"
+            msg:"You must be an admin to view User",
+            err:e
         })
     }
 })
