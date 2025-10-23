@@ -1,6 +1,6 @@
 const mongoose=require("mongoose")
 const { string } = require("zod")
-const mongooseURI="mongodb+srv://anugrahrk6_db_user:84xtlrWwYgbNkuDr@cluster007.p6z4rkj.mongodb.net/PMS"
+const mongooseURI=process.env.mongooseURI
 mongoose.connect(mongooseURI)
 const userSchema=mongoose.Schema({
     username:{

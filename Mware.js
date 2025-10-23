@@ -1,5 +1,5 @@
 const jwt=require("jsonwebtoken")
-const JWT_SECRET="MY_SECERT"
+const JWT_SECRET=process.env.JWT_SECRET
 
 const Mware=( Arole=null )=>{
     return(req,res,next)=>{

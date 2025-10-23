@@ -6,10 +6,11 @@ const router=express.Router()
 const bcrypt=require("bcrypt")
 const zod=require("zod")
 const jwt=require("jsonwebtoken")
-const JWT_SECRET="MY_SECERT"
+const JWT_SECRET=process.env.JWT_SECRET
 const multer = require("multer");
 const path = require("path");
 const Mware = require("../Mware")
+const SERVER_URI=process.env.SERVER_URI
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -220,7 +221,7 @@ router.post("/profile/:id", upload.single("profilePic"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
-    const filePath = `http://localhost:3000/uploads/${req.file.filename}`;
+    const filePath = `${SERVER_URI}/uploads/${req.file.filename}`;
 
     const user = await User.findByIdAndUpdate(
       req.params.id,
