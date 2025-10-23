@@ -7,7 +7,21 @@ const bcrypt=require("bcrypt")
 const zod=require("zod")
 const jwt=require("jsonwebtoken")
 const JWT_SECRET="MY_SECERT"
+const multer = require("multer");
+const path = require("path");
 const Mware = require("../Mware")
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(process.cwd(), "/uploads"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = Date.now() + "_" + file.originalname;
+    cb(null, uniqueName);
+  },
+});
+
+const upload = multer({ storage });
 
 const UserSchema=zod.object({
     username:zod.email(),
@@ -94,7 +108,7 @@ router.post("/signin",async(req,res)=>{
             if (MatchPassword){
             const token=jwt.sign({username,role:"user"},JWT_SECRET)
             return res.json({
-                user:"User login Success",
+                status:ValidUser.status,
                 userId:ValidUser._id,
                 token:"Bearer "+token
             })
@@ -116,10 +130,10 @@ catch(e){
 const UserUpdateSchema=zod.object({
     password:zod.string().optional(),
     status:zod.string().optional(),
-    fullName:zod.string().optional()
+    fullName:zod.string().optional(),
 
 })
-router.put("/update/:id",Mware("admin"),async(req,res)=>{
+router.put("/update/:id",Mware(),async(req,res)=>{
         const { success }=UserUpdateSchema.safeParse(req.body)
         if(!success){
             return res.json({
@@ -131,11 +145,29 @@ router.put("/update/:id",Mware("admin"),async(req,res)=>{
             {
                 var HashPassword=await bcrypt.hash(req.body.password,10)
             }
+        const FindUser=await User.findById(id)
+        if(!FindUser){
+            return res.json({
+                err:"No user Exist"
+            })
+        }
+        const ExistingUser=await User.findOne({
+            departmentId:FindUser.departmentId,
+            status:"Active",
+            _id:{$ne:id}
+        })
+        if (ExistingUser && req.body.status=== "Active"){
+            return res.json({
+                exist:"One active User already Exist"
+            })
+        }
+        const { profilePic } = req.body;
         try{
             await User.findByIdAndUpdate(id,{
                 password:HashPassword,
                 status:req.body.status,
-                fullName:req.body.fullName
+                fullName:req.body.fullName,
+                profilePic
 
             })
             return res.json({
@@ -148,9 +180,16 @@ router.put("/update/:id",Mware("admin"),async(req,res)=>{
             })
         }
 })
-router.get("/view",Mware("admin"),async(req,res)=>{
+router.get("/view",Mware(),async(req,res)=>{
+    const filter=req.query.filter||""
     try{
-        const Users=await User.find()
+        const Users=await User.find({
+            $or:[
+                {
+                    fullName:{"$regex":filter,"$options":"i"}
+                }
+            ]
+        })
         const UserwtDept=await Promise.all(
             Users.map(async(user)=>{
                 const dept=await Department.findById(user.departmentId)
@@ -159,7 +198,9 @@ router.get("/view",Mware("admin"),async(req,res)=>{
                     fullName:user.fullName,
                     username:user.username,
                     department:dept.name,
-                    status:user.status
+                    status:user.status,
+                    depId:user.departmentId,
+                    profilePic:user.profilePic
                 }
             })
         )
@@ -174,5 +215,23 @@ router.get("/view",Mware("admin"),async(req,res)=>{
         })
     }
 })
+
+router.post("/profile/:id", upload.single("profilePic"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    const filePath = `http://localhost:3000/uploads/${req.file.filename}`;
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { profilePic: filePath },
+      { new: true }
+    );
+
+    res.json({ message: "Profile updated", user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports=router

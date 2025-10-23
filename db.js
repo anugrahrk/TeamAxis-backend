@@ -22,7 +22,10 @@ const userSchema=mongoose.Schema({
     status:{
         type:String,
         default:"Inactive"
-    }
+    },
+    profilePic: { 
+    type: String,
+  }
 })
 const taskSchema=mongoose.Schema({
     name:{
@@ -54,7 +57,7 @@ const taskSchema=mongoose.Schema({
         type:Boolean,
         default:false
     },
-    Attachment:{
+    AttachmentId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Attachment"
     }
@@ -72,13 +75,16 @@ const DepartmentSchema=mongoose.Schema({
     }
 })
 const AttachmentSchema=mongoose.Schema({
-    name:{
-        type:String,
-    },
+    fileName:String,
+    fileUrl:String,
     taskId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Task",
         required:true
+    },
+    uploadedAt:{
+        type:Date,
+        default:Date.now
     }
 })
 const User=mongoose.model("User",userSchema)
