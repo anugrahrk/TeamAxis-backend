@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "application/pdf" ||"application/word" || "application/excel") cb(null, true);
+  if (file.mimetype === "application/pdf") cb(null, true);
   else cb(new Error("File Not Supported"), false);
 };
 
@@ -33,8 +33,9 @@ const taskSchema=zod.object({
     name:zod.string(),
     description:zod.string(),
     startDate:zod.string(),
-    endDate:zod.string(),
-    department:zod.string()
+    endDate:zod.string().optional(),
+    department:zod.string(),
+    createdBy:zod.string().optional()
 })
 router.post("/create",Mware(),async(req,res)=>{
     const { success }=taskSchema.safeParse(req.body)
@@ -47,12 +48,14 @@ router.post("/create",Mware(),async(req,res)=>{
         name:req.body.department
     })
     const depId=dep._id
+    const UserFind=req.body.userId ? await User.findOne({_id:req.body.userId}) : { fullName:"Admin"}
     const TaskAdd=await Task.create({
         name:req.body.name,
         description:req.body.description,
         depId:depId,
         endDate:req.body.endDate,
-        startDate:req.body.startDate
+        startDate:req.body.startDate,
+        createdBy:UserFind.fullName 
     })
     if(TaskAdd){
         return res.json({
@@ -80,7 +83,9 @@ const taskUpdate=zod.object({
     description:zod.string().optional(),
     progess:zod.number().optional(),
     completed:zod.boolean().optional(),
-    attachment:zod.string().optional()
+    attachment:zod.string().optional(),
+    AdminComments:zod.string().optional(),
+    UserComplete:zod.boolean().optional()
 
 })
 router.put("/update/:id",Mware(),async(req,res)=>{
@@ -100,7 +105,9 @@ router.put("/update/:id",Mware(),async(req,res)=>{
         startDate:req.body.startDate,
         endDate:req.body.endDate,
         completed:req.body.completed,
-        attachmentName:AttachmentFind?.fileName
+        attachmentName:AttachmentFind?.fileName,
+        AdminComments:req.body.AdminComments,
+        UserComplete:req.body.UserComplete
 
     })
     return res.json({
@@ -218,14 +225,12 @@ router.get("/download/:id",Mware(), async (req, res) => {
   res.download(filePath, attachment.fileName);
 });
 
-router.get('/file/view/:id',Mware(),async(req,res)=>{
-    const AttachmentView=await Attachment.findOne({taskId:req.params.id})
-    if(!AttachmentView) return res.json({err:"No File Found"})
-    res.json({
-        fileName:AttachmentView.fileName
+router.get('/file/view',Mware(),async(req,res)=>{
+    const AttachmentView=await Attachment.find()
+    return res.json({
+        AttachmentView
 })
 })
-
 
 
 

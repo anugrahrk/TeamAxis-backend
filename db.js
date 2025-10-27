@@ -60,6 +60,16 @@ const taskSchema=mongoose.Schema({
     AttachmentId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Attachment"
+    },
+    UserComplete:{
+        type:Boolean,
+        default:false
+    },
+    AdminComments:{
+        type:String,
+    },
+    createdBy:{
+        type:String
     }
 
 })
