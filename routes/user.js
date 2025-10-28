@@ -86,7 +86,7 @@ router.post("/signin",async(req,res)=>{
     const {success}=SigninSchema.safeParse(req.body)
     if (!success){
         return res.status(411).json({
-            "msg":"Invalid Inputs"
+            msg:"Invalid Inputs"
         })
     }
     const username=req.body.username
@@ -119,6 +119,11 @@ router.post("/signin",async(req,res)=>{
                 msg:"Username and Password Doesnt match."
             })
         }}
+        else{
+            return res.json({
+                msg:"Invalid Login"
+            })
+        }
 }
 catch(e){
     return res.json({
