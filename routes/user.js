@@ -105,7 +105,7 @@ router.post("/signin",async(req,res)=>{
         })
 
         if(ValidUser){
-            const MatchPassword=bcrypt.compare(password,ValidUser.password)
+            const MatchPassword=await bcrypt.compare(password,ValidUser.password)
             if (MatchPassword){
             const token=jwt.sign({username,role:"user"},JWT_SECRET)
             return res.json({
